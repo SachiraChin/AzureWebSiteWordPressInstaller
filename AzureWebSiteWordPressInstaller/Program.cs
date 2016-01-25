@@ -361,18 +361,15 @@ namespace AzureWebSiteWordPressInstaller
         {
             using (var client = new WebClient())
             {
+                var packagePath = $"https://wordpress.org/wordpress-{version}-IIS.zip";
+                var stream = client.OpenRead(packagePath);
+                var bytes_total = Convert.ToInt64(client.ResponseHeaders["Content-Length"]);
+                Console.WriteLine($"File size: {bytes_total / 1024}KB");
+                stream.Flush();
+                stream.Close();
 
-                client.DownloadProgressChanged += (sender, args) =>
-                {
-                    Console.Write($"\rDownloading {args.BytesReceived / 1024}KB of {args.TotalBytesToReceive / 1024}KB");
-                };
                 var filename = Path.GetTempPath() + Guid.NewGuid().ToString("N").Substring(0, 8) + ".zip";
-                client.DownloadFileAsync(new Uri($"https://wordpress.org/wordpress-{version}-IIS.zip"), filename);
-
-                while (client.IsBusy)
-                {
-                    Thread.Sleep(500);
-                }
+                client.DownloadFile(new Uri(packagePath), filename);
 
                 Console.WriteLine();
 
